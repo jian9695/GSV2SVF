@@ -412,28 +412,15 @@ class Browser(QMainWindow):
         #splitter1.setStretchFactor(1, 80);
         #self.horizontalLayoutLower.addWidget(listWidget,0,0,1,1)
         #self.horizontalLayoutLower.addWidget(self.GoogleMapsView,0,1,1,6)
-
         self.mainLayout.addWidget(splitter2)
 
         self.setCentralWidget(self.centralwidget)
-        extractAction = QAction("&GET TO THE CHOPPAH!!!", self)
-        extractAction.setShortcut("Ctrl+Q")
-        extractAction.setStatusTip('Leave The App')
-        #extractAction.triggered.connect(self.close_application)
-        #mainMenu = self.menuBar()
-        #fileMenu = mainMenu.addMenu('&File')
-        #fileMenu.addAction(extractAction)
-
-        #self.default_url = "file:///" + SVFHOME + "GoogleMaps.html"
-        #self.GoogleMapsView.load(QtCore.QUrl(self.default_url))
-        #self.GoogleStreetView.load(QtCore.QUrl("file:///" + SVFHOME + "GoogleStreetView.html"))
-        #self.GoogleMapsView.load(QtCore.QUrl("file:///" + SVFHOME + "test.html"))
-
+        self.setInitialLocaion(float(MyConfig.lat), float(MyConfig.lon))
         MyConfig.loadHtmls()
         self.GoogleMapsView.setHtml(MyConfig.GoogleMapsHtmlContent)
         self.GoogleStreetView.setHtml(MyConfig.GoogleStreetViewHtmlContent)
-        #print(MyConfig.GoogleMapsHtmlContent)
-        #print(MyConfig.GoogleStreetViewHtmlContent)
+        self.GoogleMapsView.loadFinished.connect(self.mapViewLoadFinished)
+        self.GoogleStreetView.loadFinished.connect(self.gsvViewLoadFinished)
 
     def setupWebChannel(self):
         self.browserChannel = BrowserChannel()
@@ -441,6 +428,17 @@ class Browser(QMainWindow):
         self.webChannel = QWebChannel(self.GoogleMapsView.page());
         self.webChannel.registerObject('mainWin', self.browserChannel);
         self.GoogleMapsView.page().setWebChannel(self.webChannel);
+
+    def mapViewLoadFinished(self, result):
+        self.GoogleMapsView.page().runJavaScript("zoom({0},{1})".format(CurLatLon.lat,CurLatLon.lon)) 
+   
+    def gsvViewLoadFinished(self, result): 
+        self.GoogleStreetView.page().runJavaScript("setPano ({0},{1})".format(CurLatLon.lat,CurLatLon.lon)) 
+        
+    def setInitialLocaion(self, lat, lon):
+        CurLatLon.lat = lat
+        CurLatLon.lon = lon
+        self.coords_line.setText("%05f,%05f" % (lat, lon))
 
     def enableUI(self, enabled):
         self.coords_line.setEnabled(enabled)
@@ -490,12 +488,12 @@ class Browser(QMainWindow):
         self.httpserver = QProcess()
         self.httpserver.start(command, args, QIODevice.ReadWrite)
         self.httpserver.waitForStarted()
-        
+
     def initialize(self):
         self.setupWebChannel()
         self.startClassifierProcess()
         self.startHttpServerProcess()
-
+        
     def __init__(self):
         QMainWindow.__init__(self)
         self.loadUI()
