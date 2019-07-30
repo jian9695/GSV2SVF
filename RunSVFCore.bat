@@ -1,0 +1,5 @@
+set SVFHOME=%~dp0
+set PYTHONHOME=%SVFHOME%Miniconda2
+set PYTHONPATH=%PYTHONHOME%Lib
+set PythonDir=%PYTHONHOME%
+%PYTHONHOME%\python.exe %SVFHOME%RunSVFCore.py
