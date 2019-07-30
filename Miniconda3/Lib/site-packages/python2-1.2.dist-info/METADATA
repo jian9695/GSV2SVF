@@ -1,0 +1,25 @@
+Metadata-Version: 2.1
+Name: python2
+Version: 1.2
+Summary: A library for running Python 2 code from a Python 3 application.
+Home-page: https://github.com/nickgaya/python2
+Author: Nicholas Gaya
+Author-email: nickgaya@users.noreply.github.com
+License: MIT
+Download-URL: https://github.com/nickgaya/python2/tarball/1.2
+Keywords: python2,legacy,compatibility
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Libraries
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+
+UNKNOWN
+
+
