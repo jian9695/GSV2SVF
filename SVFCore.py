@@ -32,8 +32,8 @@ class Config():
            try:
              file = open(configFile,"w") 
              file.write("APIkey," + "\n")
-             file.write("Lat,42.345573" + "\n")
-             file.write("Lon,-71.098326" + "\n")
+             file.write("Lat,40.721441" + "\n")
+             file.write("Lon,-73.994535" + "\n")
              file.write("CUDA,1" + "\n")
              file.close() 
            except Exception as err:

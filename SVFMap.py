@@ -38,8 +38,8 @@ import json
 
 class Config():
     apikey = ""
-    lat = 42.345573
-    lon = -71.098326
+    lat = 40.721441
+    lon = -73.994535
     cuda = True
     GoogleMapsHtmlContent = ""
     GoogleStreetViewHtmlContent = ""
