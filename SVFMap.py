@@ -293,7 +293,6 @@ class Browser(QMainWindow):
         #self.setToolTip('Enter picking mode to interactively gather sample points')
         self.bt_pick.setToolTip('Enter picking mode to interactively gather sample points.')
       
-
         self.bt_interpolate = self.createBTN(32,"")
         self.bt_interpolate.setCheckable(True);
         self.bt_interpolate.setChecked(False)
@@ -333,25 +332,22 @@ class Browser(QMainWindow):
         self.bt_compute.setToolTip('Compute SVF for the collection of sample points.')
         self.bt_compute.setIcon(QIcon(SVFHOME + "Icons/Compute.png"))
 
-
         self.bt_rectSel = self.createBTN(32,"")
         self.bt_rectSel.setToolTip('Select sample points by dragging a rectangle.')
         self.bt_rectSel.setCheckable(True);
         self.bt_rectSel.setChecked(False)
         self.bt_rectSel.setIcon(QIcon(SVFHOME + "Icons/Select.png"))
 
-
         self.bt_export = self.createBTN(32,"")
         self.bt_export.setToolTip('Export the selected sample points.')
         self.bt_export.setIcon(QIcon(SVFHOME + "Icons/Export.png"))
-
 
         self.bt_sampledist =  QSpinBox();
         self.bt_sampledist.setMaximumWidth(75);
         self.bt_sampledist.setMaximumHeight(self.ICON_SIZE);
         self.bt_sampledist.setRange(5, 1000);
         self.bt_sampledist.setSingleStep(5);
-        self.bt_sampledist.setValue(5);
+        self.bt_sampledist.setValue(100);
         self.bt_sampledist.setToolTip('Set the sampling interval (in meters) for interpolating between two sample points')
 
         self.bt_loadshapefile.clicked.connect(self.loadShapeFile)
@@ -400,7 +396,6 @@ class Browser(QMainWindow):
         self.GoogleStreetView.settings().setAttribute(QWebEngineSettings.LocalContentCanAccessFileUrls, True);
         self.GoogleStreetView.settings().setAttribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls,True)
         splitter1 = QSplitter()
-
 
         #self.horizontalLayoutLower = QGridLayout()
         #listWidget = QListWidget()
@@ -464,22 +459,16 @@ class Browser(QMainWindow):
 
     def readClassiferOutput(self):
         output = str(self.classifier.readAllStandardOutput(), encoding = 'utf-8').strip()
-        if output == "task.finished" or output == "task.failed":
-            self.finishedTasks = self.finishedTasks + 1
-        if self.finishedTasks >= self.pendingTasks:
-            self.finishComputeTasks()
-            self.enableUI(True)
-            self.pendingTasks = 0
-            self.finishedTasks = 0
-        else:
-           print(output)
-           return
+                   
+        if ("task.finished" in output.lower()) == True or ("task.failed" in output.lower()) == True:
+           self.finishComputeTasks()
+           self.enableUI(True)
+        print(output)
 
     def startClassifierProcess(self):
         self.pendingTasks = 0
         self.finishedTasks = 0
         self.taskdir = ""
-        self.isEnabled = False
         command = SVFHOME + "RunSVFCore.bat"
         args =  {""}
         self.classifier = QProcess()
@@ -501,6 +490,7 @@ class Browser(QMainWindow):
         self.setupWebChannel()
         self.startClassifierProcess()
         self.startHttpServerProcess()
+        self.isEnabled = True
 
     def closeEvent(self,event):
         result = QtWidgets.QMessageBox.question(self,
