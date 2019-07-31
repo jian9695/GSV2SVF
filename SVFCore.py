@@ -355,7 +355,6 @@ class GSVCapture():
             for y in range(0, numtilesy):
                  imageTile = self.getImage(panoid, x, y, 2,outdir)
                  if imageTile == None:
-                     os.rmdir(outdir)
                      return ""
                  img = Image.open(imageTile)
                  if y == 1:
@@ -393,9 +392,12 @@ class GSVCapture():
         fs = open(taskFile,"r") 
         lines = fs.readlines()
         fs.close()
+        numtask = len(lines)
+        taskid = 0.0
         for line in lines:
             panoid = line.strip()
             result = [-1,-1,-1]
+            taskid = taskid + 1.0
             if len(panoid) > 3:
                panodir =  outdir + panoid + '/'
                result = self.getByID(panodir, panoid)
@@ -403,7 +405,9 @@ class GSVCapture():
                   result = [-1,-1,-1]
             fresult = open(panodir +  "result.txt","w") 
             fresult.write(str(result[0]) + "," + str(result[1]) + "," + str(result[2]) + "\n") 
-            fresult.close()            
+            fresult.close()
+            sys.stdout.write("progress: " + "{:.2%}".format(taskid/numtask) + "\n")
+            sys.stdout.flush()       
 
     def getByLatLong(self, outdir, lat,lon):
         pano = Panorama();

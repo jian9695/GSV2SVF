@@ -522,17 +522,18 @@
       return d;
     }
     function getColor(val) {
-      idx = Math.round(val * 10);
+      idx = Math.floor(val * 10);
+      //alert(val.toString() + "," + idx.toString() + "," + colors[idx].toString())
       if (idx < 0)
         idx = 0;
       if (idx > 9)
         idx = 9;
       return colors[idx];
-      r = Math.round(val * 255.0);
-      g = Math.round((1.0 - val) * 255.0);
-      color = 'rgb(' + r + ', ' + g + ', ' + '0)';
-      //alert(color);
-      return 'rgb(' + r + ', ' + g + ', ' + '0)';
+      //r = Math.round(val * 255.0);
+      //g = Math.round((1.0 - val) * 255.0);
+      //color = 'rgb(' + r + ', ' + g + ', ' + '0)';
+      ////alert(color);
+      //return 'rgb(' + r + ', ' + g + ', ' + '0)';
     }
     function initMap() {
       initLon = -76.61488182;

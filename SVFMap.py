@@ -1,5 +1,5 @@
-import sys
-import os
+import sys, os, signal
+import subprocess
 SVFHOME = os.environ['SVFHOME']
 CACHEDIR = SVFHOME + "Cache\\"
 HTTPADDRESS = "http://127.0.0.1:8000/"
@@ -116,12 +116,18 @@ class Panorama():
             root = json.loads(str)
             if root['status'] != "OK":
                 return False
+            if ("google" in root['copyright'].lower()) == False:
+                return False
+ 
             location = root['location']
             self.date = root['date']
             self.panoid = root['pano_id']
             self.lat = location['lat']
             self.lon = location['lng']
             self.initialized = True
+            if len(self.panoid) > 30:
+               print(json.dumps(root, indent=4, sort_keys=True))
+
             return True
         except ValueError:
             return False
@@ -466,7 +472,8 @@ class Browser(QMainWindow):
             self.pendingTasks = 0
             self.finishedTasks = 0
         else:
-          return
+           print(output)
+           return
 
     def startClassifierProcess(self):
         self.pendingTasks = 0
@@ -485,15 +492,28 @@ class Browser(QMainWindow):
     def startHttpServerProcess(self):
         command = SVFHOME + "StartHttpServer.bat"
         args =  {""}
-        self.httpserver = QProcess()
-        self.httpserver.start(command, args, QIODevice.ReadWrite)
-        self.httpserver.waitForStarted()
+        #self.httpserver = QProcess()
+        #self.httpserver.start(command, args, QIODevice.ReadWrite)
+        #self.httpserver.waitForStarted()
+        self.httpserver = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def initialize(self):
         self.setupWebChannel()
         self.startClassifierProcess()
         self.startHttpServerProcess()
-        
+
+    def closeEvent(self,event):
+        result = QtWidgets.QMessageBox.question(self,
+                      "Confirm Exit...",
+                      "Are you sure you want to exit ?",
+                      QtWidgets.QMessageBox.Yes| QtWidgets.QMessageBox.No)
+        event.ignore()
+
+        if result == QtWidgets.QMessageBox.Yes:
+            self.httpserver.kill()
+            event.accept()
+
+
     def __init__(self):
         QMainWindow.__init__(self)
         self.loadUI()
@@ -780,33 +800,36 @@ class Browser(QMainWindow):
             for j in range(0, len(sample)):
                 pano = sample[j]
                 sampleid = sampleid + 1
-                if pano.initialized == False:
-                    panoid = ''
-                    continue
-                panoid = pano.panoid
-                outdir = self.taskDir + panoid + "\\"
-                httpdir = HTTPADDRESS + foldername + "/" + panoid + "/"
-                if not os.path.exists(self.taskdir):
-                   continue
-                pano.id  = sampleid
-                panoinfo_file = outdir + "panoinfo.txt"
-                result = self.finishPanoTask(outdir)
-                if len(result) < 3:
-                    continue
-                pano.svf = result[0]
-                pano.tvf = result[1]
-                pano.bvf = result[2]
-                pano.write(panoinfo_file)
-                shp.point(pano.lon,pano.lat)
-                shp.record(sampleid,pano.panoid, pano.date, pano.lat, pano.lon, pano.svf, pano.tvf, pano.bvf)
-                fileout.write(pano.toString() + "\n") 
-                fisheyefile = httpdir + "fisheye.png"
-                fisheyefile = fisheyefile.replace('\\','/') 
-                classifiedfisheyefile = httpdir + "fisheye_classified.png"
-                classifiedfisheyefile = classifiedfisheyefile.replace('\\','/')
-                self.GoogleMapsView.page().runJavaScript("setMarker({0},{1},{2},\"{3}\",\"{4}\",{5},{6})".format(pano.svf,pano.tvf,pano.bvf,fisheyefile,classifiedfisheyefile,pano.lat,pano.lon))
-                job.panoramas.append(pano)
-
+                try:
+                    if pano.initialized == False:
+                        panoid = ''
+                        continue
+                    panoid = pano.panoid
+                    outdir = self.taskDir + panoid + "\\"
+                    httpdir = HTTPADDRESS + foldername + "/" + panoid + "/"
+                    if not os.path.exists(self.taskdir):
+                       continue
+                    pano.id  = sampleid
+                    panoinfo_file = outdir + "panoinfo.txt"
+                    result = self.finishPanoTask(outdir)
+                    if len(result) < 3:
+                        continue
+                    pano.svf = result[0]
+                    pano.tvf = result[1]
+                    pano.bvf = result[2]
+                    pano.write(panoinfo_file)
+                    shp.point(pano.lon,pano.lat)
+                    shp.record(sampleid,pano.panoid, pano.date, pano.lat, pano.lon, pano.svf, pano.tvf, pano.bvf)
+                    fileout.write(pano.toString() + "\n") 
+                    fisheyefile = httpdir + "fisheye.png"
+                    fisheyefile = fisheyefile.replace('\\','/') 
+                    classifiedfisheyefile = httpdir + "fisheye_classified.png"
+                    classifiedfisheyefile = classifiedfisheyefile.replace('\\','/')
+                    self.GoogleMapsView.page().runJavaScript("setMarker({0},{1},{2},\"{3}\",\"{4}\",{5},{6})".format(pano.svf,pano.tvf,pano.bvf,fisheyefile,classifiedfisheyefile,pano.lat,pano.lon))
+                    job.panoramas.append(pano)
+                except Exception as err:
+                    print(str(err) + "\n")
+ 
         PanoramaJobs.append(job)
         shp.close()
         fileout.close() 

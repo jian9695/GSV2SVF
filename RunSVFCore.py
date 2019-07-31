@@ -29,13 +29,19 @@ if __name__ == "__main__":
                    sys.stdout.write("set output directory failed: " + cacheDir +  "\n")
                    sys.stdout.flush()
             if len(splits) > 2 and splits[0] == "getbylatlong":
+                sys.stdout.write("task.started\n")
+                sys.stdout.flush()
                 lat = float(splits[1])
                 lon = float(splits[2])
                 GSVCapture.getByLatLong(CacheDir,lat,lon)
             if len(splits) > 1 and splits[0] == "getbyid":
+                sys.stdout.write("task.started\n")
+                sys.stdout.flush()
                 id = splits[1]
                 GSVCapture.getByID(CacheDir,lat,lon)
             if len(splits) > 1 and splits[0] == "batchgetbyid":
+                sys.stdout.write("task.started\n")
+                sys.stdout.flush()
                 dir = splits[1]
                 GSVCapture.batchGetByID(dir)
             sys.stdout.write("task.finished\n")
