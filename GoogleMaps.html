@@ -17,7 +17,7 @@
   </style>
   <style type="text/css">
     #legend {
-      background: #FFF;
+      background: rgba(0, 0, 0, 0);
       font-size: 18px;
       font-family: Arial, sans-serif;
     }
@@ -499,6 +499,7 @@
     var interpolate = false;
     var samples_markers = [];
     var results_markers = [];
+    var legendTitle = 'SVF'
     var EARTH_RADIUS = 6378137;
     var rectangle = null;
     var isInterp = false;
@@ -573,28 +574,32 @@
     }
  
     function createLegend() {
+      map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].clear();
       // Create the legend and display on the map
       var legend = document.createElement('div');
       legend.id = 'legend';
-      var content = [];
-      content.push('<h3>SVF value</h3>');
-      content.push('<p><div class="color c10"></div>0.9-1.0</p>');
-      content.push('<p><div class="color c9"></div>0.8-0.9</p>');
-      content.push('<p><div class="color c8"></div>0.7-0.8</p>');
-      content.push('<p><div class="color c7"></div>0.6-0.7</p>');
-      content.push('<p><div class="color c6"></div>0.5-0.6</p>');
-      content.push('<p><div class="color c5"></div>0.4-0.5</p>');
-      content.push('<p><div class="color c4"></div>0.3-0.4</p>');
-      content.push('<p><div class="color c3"></div>0.2-0.3</p>');
-      content.push('<p><div class="color c2"></div>0.1-0.2</p>');
-      content.push('<p><div class="color c1"></div>0.0-0.1</p>');
-      legend.innerHTML = content.join('');
+      var legendContent = []
+      legendContent.push('<h3>' + legendTitle +' </h3>');
+      legendContent.push('<p><div class="color c10"></div>0.9-1.0</p>');
+      legendContent.push('<p><div class="color c9"></div>0.8-0.9</p>');
+      legendContent.push('<p><div class="color c8"></div>0.7-0.8</p>');
+      legendContent.push('<p><div class="color c7"></div>0.6-0.7</p>');
+      legendContent.push('<p><div class="color c6"></div>0.5-0.6</p>');
+      legendContent.push('<p><div class="color c5"></div>0.4-0.5</p>');
+      legendContent.push('<p><div class="color c4"></div>0.3-0.4</p>');
+      legendContent.push('<p><div class="color c3"></div>0.2-0.3</p>');
+      legendContent.push('<p><div class="color c2"></div>0.1-0.2</p>');
+      legendContent.push('<p><div class="color c1"></div>0.0-0.1</p>');
+      legend.innerHTML = legendContent.join('');
       legend.index = 1;
+
       map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
     }
+
     function zoom(lat, lon) {
       map.setCenter(new google.maps.LatLng(lat, lon));
     }
+
     function select() {
       if (rectangle === null) {
         bounds = map.getBounds();
@@ -631,7 +636,7 @@
     }
 
     // Deletes all markers in the array by removing references to them.
-    function clear() {
+    function clearSamples() {
       for (var i = 0; i < samples_markers.length; i++) {
         samples_markers[i].setMap(null);
       }
@@ -642,6 +647,13 @@
       }
       polylines = [];
 
+    }
+
+    function clearResults() {
+      for (var i = 0; i < results_markers.length; i++) {
+        results_markers[i].setMap(null);
+      }
+      results_markers = [];
     }
 
     function randColor() {
@@ -694,7 +706,12 @@
 
     }
 
-    function setMarker(svf, tsv, bsv, imagesrc, imagesrc2, lat, lon) {
+    function setLegendTitle(title) {
+      legendTitle = title;
+      createLegend();
+    }
+
+    function setMarker(svf, tsv, bsv, value, imagesrc, imagesrc2, lat, lon) {
 
       latLng = new google.maps.LatLng(lat, lon)
 
@@ -703,9 +720,9 @@
         map: map,
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
-          fillColor: getColor(svf),
+          fillColor: getColor(value),
           fillOpacity: 0.95,
-          strokeColor: getColor(svf),
+          strokeColor: getColor(value),
           strokeWeight: 1,
           optimized: false,
           scale: 10

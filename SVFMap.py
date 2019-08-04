@@ -146,7 +146,6 @@ class Panorama():
 
     def fromLocation(self,lat,lon):
         url= GSV_API_URL + "/metadata?location=" + str(lat) + "," + str(lon) +"&key="+ MyConfig.apikey
-        #print(url)
         try:
             response = requests.get(url)
             if response.status_code == requests.codes.ok:
@@ -205,7 +204,6 @@ class PanoramaJob():
             panofolder = dir + subdirname + "/"
             if os.path.exists(panofolder + "panoinfo.txt") == False:
                continue
-            #print(panofolder + "panoinfo.txt")
             pano = Panorama()
             pano.read(panofolder + "panoinfo.txt")
             self.panoramas.append(pano)
@@ -350,6 +348,11 @@ class Browser(QMainWindow):
         self.bt_sampledist.setValue(100);
         self.bt_sampledist.setToolTip('Set the sampling interval (in meters) for interpolating between two sample points')
 
+        self.cb_factorTypes = QComboBox();
+        self.cb_factorTypes.addItems(["SVF", "TVF", "BVF"])
+        self.cb_factorTypes.setToolTip('Select the type of view factor to map.')
+        self.cb_factorTypes.setMaximumWidth(50);
+
         self.bt_loadshapefile.clicked.connect(self.loadShapeFile)
         self.bt_zoom.clicked.connect(self.zoom)
         self.bt_removeAll.clicked.connect(self.removeAllPoints)
@@ -357,6 +360,7 @@ class Browser(QMainWindow):
         self.bt_compute.clicked.connect(self.compute)
         self.bt_rectSel.clicked.connect(self.select)
         self.bt_export.clicked.connect(self.export)
+        self.cb_factorTypes.currentIndexChanged.connect(self.cb_factorTypes_indexChanged)
 
         pos = 0
         self.horizontalLayout.addWidget(self.coords_line,0,pos)
@@ -386,6 +390,8 @@ class Browser(QMainWindow):
         self.horizontalLayout.addWidget(self.bt_rectSel,0,pos)
         pos = pos + 1
         self.horizontalLayout.addWidget(self.bt_export,0,pos)
+        pos = pos + 1  
+        self.horizontalLayout.addWidget(self.cb_factorTypes,0,pos)
         pos = pos + 1  
         self.mainLayout.addLayout(self.horizontalLayout)
 
@@ -525,7 +531,6 @@ class Browser(QMainWindow):
     def loadShapeFile(self):
         try:
           infile = QFileDialog.getOpenFileName(self, 'Open ESRI Shapefile', self.LAST_DIRECTORY,"ESRI Shapefile (*.shp)")
-          #print(infile[0])
           if not infile:
              return
           sf = shapefile.Reader(infile[0])
@@ -550,7 +555,6 @@ class Browser(QMainWindow):
                       sumlat = sumlat + point[1]
                       sumlon = sumlon + point[0]
                       fileout.write(newSample.toString() + "\n") 
-                      #print(str(fid) + ":" + newSample.panoid + "," + str(point[0]) + "," + str(point[1]))
                       fid = fid + 1
                   except: 
                       print("error")
@@ -559,7 +563,6 @@ class Browser(QMainWindow):
           self.GoogleMapsView.page().runJavaScript("addPoint()")
           centerlon = sumlon / float(fid)
           centerlat = sumlat / float(fid)
-          #print("Finished ({0},{1})".format(centerlat, centerlon))
           self.GoogleMapsView.page().runJavaScript("zoom({0},{1})".format(centerlat,centerlon))
         except Exception as err:
           print(str(err) + "\n")
@@ -641,11 +644,9 @@ class Browser(QMainWindow):
               jobid = str(newJob.jobid)
               injobdir = CACHEDIR + jobid + "\\"
               outjobdir = outdir + jobid + "\\"
-              #print(outjobdir)
               sel = []
               for n in range(0,len(job.panoramas)):
                   pano = job.panoramas[n]
-                  #print(str(n) + "," + str(len(job.panoramas)))
                   if pano.lon > maxLon or pano.lat > maxLat or pano.lon < minLon or pano.lat < minLat:
                       continue
                   shp.point(pano.lon,pano.lat)
@@ -674,7 +675,7 @@ class Browser(QMainWindow):
                 numpoints = len(PanoramaSamples[len(PanoramaSamples)-1])
                 #self.GoogleMapsView.page().runJavaScript("removeSamplePoints({0})".format(numpoints))
                 PanoramaSamples.pop()
-          self.GoogleMapsView.page().runJavaScript("clear()")
+          self.GoogleMapsView.page().runJavaScript("clearSamples()")
         except Exception as err:
           print(str(err) + "\n")
 
@@ -692,13 +693,18 @@ class Browser(QMainWindow):
         except Exception as err:
           print(str(err) + "\n")
 
+    @QtCore.pyqtSlot(int)
+    def cb_factorTypes_indexChanged(self, viewFactorType):
+        self.reloadCache();
+        self.GoogleMapsView.page().runJavaScript("setLegendTitle(\"{0}\")".format(self.cb_factorTypes.currentText()))
+
     @QtCore.pyqtSlot(str)
     def loadCache(self, arg):
         try:
+          PanoramaJobs.clear()
           dirs = os.listdir(CACHEDIR)
           for foldername in dirs:
               outdir = CACHEDIR + foldername + "\\"
-              print(outdir)
               job = PanoramaJob()
               job.loadJob(outdir)
               PanoramaJobs.append(job)
@@ -708,8 +714,18 @@ class Browser(QMainWindow):
                   fisheyefile = fisheyefile.replace('\\','/')
                   classifiedfisheyefile = httpdir + "fisheye_classified.png"
                   classifiedfisheyefile = classifiedfisheyefile.replace('\\','/')
+                  result = [pano.svf,pano.tvf,pano.bvf]
+                  viweFactor = result[self.cb_factorTypes.currentIndex()]
+                  self.GoogleMapsView.page().runJavaScript("setMarker({0},{1},{2},{3},\"{4}\",\"{5}\",{6},{7})".format(pano.svf,pano.tvf,pano.bvf,viweFactor,fisheyefile,classifiedfisheyefile,pano.lat,pano.lon))
 
-                  self.GoogleMapsView.page().runJavaScript("setMarker({0},{1},{2},\"{3}\",\"{4}\",{5},{6})".format(pano.svf,pano.tvf,pano.bvf,fisheyefile,classifiedfisheyefile, pano.lat,pano.lon))
+        except Exception as err:
+          print(str(err) + "\n")
+
+    @QtCore.pyqtSlot(str)
+    def reloadCache(self):
+        try:
+          self.GoogleMapsView.page().runJavaScript("clearResults()")
+          self.loadCache("")
         except Exception as err:
           print(str(err) + "\n")
 
@@ -815,7 +831,8 @@ class Browser(QMainWindow):
                     fisheyefile = fisheyefile.replace('\\','/') 
                     classifiedfisheyefile = httpdir + "fisheye_classified.png"
                     classifiedfisheyefile = classifiedfisheyefile.replace('\\','/')
-                    self.GoogleMapsView.page().runJavaScript("setMarker({0},{1},{2},\"{3}\",\"{4}\",{5},{6})".format(pano.svf,pano.tvf,pano.bvf,fisheyefile,classifiedfisheyefile,pano.lat,pano.lon))
+                    viweFactor = result[self.cb_factorTypes.currentIndex()]
+                    self.GoogleMapsView.page().runJavaScript("setMarker({0},{1},{2},{3},\"{4}\",\"{5}\",{6},{7})".format(pano.svf,pano.tvf,pano.bvf,viweFactor,fisheyefile,classifiedfisheyefile,pano.lat,pano.lon))
                     job.panoramas.append(pano)
                 except Exception as err:
                     print(str(err) + "\n")
@@ -892,10 +909,8 @@ class Browser(QMainWindow):
                newLat = lastPoint.lat + (i + 1) * latstep;
                newSample = Panorama();
                newSample.fromLocation(newLat,newLon)
-               #print(len(newPointSet))
                if lastid == newSample.panoid:
                   continue
-               #print("({0},{1},{2},{3})".format(curPoint.lat, curPoint.lon,newSample.lat, newSample.lon))
                if self.great_circle_distance(lastPoint.lat, lastPoint.lon, curPoint.lat, curPoint.lon) < self.great_circle_distance(lastPoint.lat, lastPoint.lon, newSample.lat, newSample.lon):
                   continue
                lastid = newSample.panoid
@@ -925,10 +940,6 @@ class Browser(QMainWindow):
           self.coords_line.setText("%05f,%05f" % (lat, lon))
           if self.isEnabled == False:
              return
-          #print(arg)
-          #setSamplingArgs = "setSampling ({0},{1})".format(str(self.bt_interpolate.isChecked()).lower(),self.bt_sampledist.value())
-          #setSamplingArgs = "setSampling()"
-          #print(setSamplingArgs)
           if self.bt_pick.isChecked() == False:
              return
           self.GoogleStreetView.page().runJavaScript("setPano ({0},{1})".format(lat, lon))
