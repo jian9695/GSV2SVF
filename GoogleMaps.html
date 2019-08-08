@@ -574,7 +574,7 @@
     }
  
     function createLegend() {
-      map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].clear();
+      map.controls[google.maps.ControlPosition.RIGHT_TOP].clear();
       // Create the legend and display on the map
       var legend = document.createElement('div');
       legend.id = 'legend';
@@ -593,7 +593,7 @@
       legend.innerHTML = legendContent.join('');
       legend.index = 1;
 
-      map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+      map.controls[google.maps.ControlPosition.RIGHT_TOP].push(legend);
     }
 
     function zoom(lat, lon) {
