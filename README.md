@@ -27,7 +27,8 @@ The result set for each sample point is stored in a separate folder that contain
 *  (5)	The sample point attributes (sequential number, GSV panorama ID, capture date, latitude, longitude, sky view factor, tree view factor, building view factor).
 The attributes for each sample point are also written sequentially into a shapefile and a CSV file in the same folder. The shapefile and the CSV file can then be imported into GIS and other tools for further visualization and analysis.
 #### 5.3.	Export results
-Click   to interactively define the export extent and then click   to all results within the extent to the specified folder. 
+Click to interactively define the export extent and then click to export all results within the extent to the specified folder. The exported results are available in two formats, Esri Shapefile (.shp) and comma-separated text (.csv). Both the Esri Shapefile and comma-separated text export formats have the same table schema with eight columns (Figure 8): (1) “id” is the sequential order; (2) “panoid” is the GSV ID returned from the Google Maps API query; (3) “data” is the date of acquisition of the GSV panorama; (4) “lat” is the WGS84 latitude of the location; (5) “lon” is the WGS84 longitude of the location; (6) “svf” is the sky view factor; (7) “tvf” is the tree view factor; (8) “bvf” is the building view factor.
+
 ### 6.	Contact
 Jianming Liang 
 jian9695@gmail.com
