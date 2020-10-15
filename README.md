@@ -5,6 +5,23 @@ GSV2SVF is designed to interactively calculate sky/tree/building view factors fr
 The Caffe-SegNet deep convolutional framework is used to classify street images (https://github.com/alexgkendall/caffe-segnet). Python and JavaScript were used to develop the interactive functionality that integrates Caffe-SegNet with Google Maps. The program currently runs only on Windows due to the restriction that the Caffe-SegNet module was compiled on Windows, although it could also be complied on Linux. A NVIDIA graphics card that supports CUDA 7.5 or newer versions is required. It has been tested only on Windows 10. Further efforts are needed to rebuild GSV2SVF for running on Linux.
 ### 3.	Google Maps API license
 A Google Maps API is needed to explore Google Maps and perform GSV queries. The user may apply for a Google Maps API Key at https://developers.google.com/maps/documentation/javascript/get-api-key. 
+
+To make sure your Google API is working, you can verify by testing
+https://maps.googleapis.com/maps/api/streetview/metadata?location=40.7254686,-73.9966184&key=API_KEY
+Remember to replace "API_KEY" with your actual Google API Key. 
+If it works, you should be able to see response in the following structure:
+```json
+{
+   "copyright" : "© Google",
+   "date" : "2019-06",
+   "location" : {
+      "lat" : 40.7254686,
+      "lng" : -73.9966184
+   },
+   "pano_id" : "zI-rBAALNiHzRTwczq7XDg",
+   "status" : "OK"
+}
+```
 ### 4.	Configuration
 Open the configuration table Config.csv in the root. The table consists of two columns: the variable names (APIKey, Lat, Lon, CUDA) are laid out in the first column with their respective values stored in the second column. Enter your Google Maps API Key and optionally the startup map location in the second column.
 ### 5.	Run GSV2SVF (Run.bat)
